@@ -1,0 +1,115 @@
+[project]
+name = "issue-downloader"
+description = "Downloads issues to Markdown files"
+version = "1.1.0"
+requires-python = ">=3.9"
+authors = [
+  { name = "Viktor Rimark", email = "python@rxbc.se" }
+]
+dependencies = [
+  "httpx",
+  "pydantic",
+  "typer-slim",
+]
+dynamic = ["readme"]
+
+[project.urls]
+repository = "https://github.com/vikahl/issue-downloader"
+
+[project.optional-dependencies]
+dev = [
+  "issue-downloader[test]",
+  "issue-downloader[types]",
+  # linters and formatters that do not need an installed module
+  "ruff",
+]
+
+types = [
+  "mypy"
+]
+test = [
+  # testing requirements
+  "pytest",
+  "pytest-cov",
+  "respx",
+]
+
+[project.scripts]
+issue-downloader = "issue_downloader.cli:main"
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+readme = {file = "README.md", content-type = "text/markdown"}
+
+# Ruff configuration
+[tool.ruff.lint]
+select = ["E", "F", "C901", "I001"]
+fixable = ["I001"]
+
+[tool.mypy]
+strict = true
+extra_checks = false
+ignore_missing_imports = true
+
+[tool.coverage.paths]
+# Define which paths that coverage should be measured for. We want to measure
+# coverage against the built/installed package.
+source = ["src", ".tox/*/site-packages"]
+
+[tool.coverage.report]
+show_missing = true
+
+[tool.pytest.ini_options]
+addopts = "--cov=issue-downloader --cov-report=xml"
+testpaths = [
+  "tests",
+]
+
+[tool.tox]
+env_list = [
+  "lint",
+  "types",
+  "py39",
+  "py310",
+  "py311",
+  "py312",
+  "py313",
+]
+
+[tool.tox.env_run_base]
+extras = ["test"]
+commands = [
+  [ "pytest", { replace = "posargs", extend = true }]
+]
+
+[tool.tox.env.lint]
+description = "Lint code. If this fails, run tox run -e format to auto-format"
+basepython = ["python3.12"]
+deps = ["ruff"]
+skip_install = true
+commands = [
+   [ "ruff", "check", "{toxinidir}" ],
+   [ "ruff", "format", "--check", "{toxinidir}" ]
+]
+
+[tool.tox.env.types]
+description = "Typecheck code with Mypy"
+basepython = ["python3.12"]
+extras = ["types"]
+commands = [
+  [ "mypy", "{toxinidir}/src" ],
+  [ "mypy", "{toxinidir}/tests" ]
+]
+
+[tool.tox.env.format]
+description = "Autoformat the code, can be used to manually trigger a format if the linting fails"
+basepython = ["python3.12"]
+deps = [ "ruff" ]
+skip_install = true
+commands = [
+    [ "ruff", "format", "{toxinidir}" ],
+    [ "ruff", "check", "--fix", "{toxinidir}" ]
+]

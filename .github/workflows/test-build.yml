@@ -1,0 +1,32 @@
+# This workflow will test building the package and verify it with twine.
+name: Test packaging
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+      # To get completely reproducible builds these dependencies should be
+      # pinned. For most smaller projects it should be ok to leave them
+      # unpinend as they are stable projects.
+    - name: Install dependencies
+      run: |
+        pip install build twine
+
+    - name: Build package
+      run: python -m build
+
+    - name: Test built package
+      run: twine check --strict dist/*
